@@ -1,0 +1,80 @@
+﻿// Copyright (c) Zenasoft. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using Xunit;
+using System.Globalization;
+
+namespace Jellyfish.Configuration.Tests
+{
+    public class DynamicPropertiesTest
+    {
+        [Fact]
+        public void EmptyDynamicPropertyTest()
+        {
+            DynamicProperties.Instance.Reset();
+
+            Assert.Null(DynamicProperties.Instance.GetProperty<int>("test"));
+            var p = DynamicProperties.Instance.GetOrDefaultProperty<int>("test");
+            Assert.Equal(0, p.Get());
+        }
+
+        [Fact]
+        public void PropertyDeclarationTest()
+        {
+            DynamicProperties.Instance.Reset();
+
+            var prop = DynamicProperties.Factory.AsProperty(10, "test");
+            Assert.NotNull(prop);
+            Assert.Equal(10, prop.Get());
+            var p = DynamicProperties.Instance.GetOrDefaultProperty<int>("test");
+            Assert.Equal(10, p.Get());
+            var prop2 = DynamicProperties.Instance.GetProperty<int>("test");
+            Assert.NotNull(prop2);
+            Assert.Equal(prop.Get(), prop2.Get());
+        }
+
+        [Fact]
+        public void DuplicateTest()
+        {
+            DynamicProperties.Instance.Reset();
+
+            var prop = DynamicProperties.Factory.AsProperty(10, "test");
+            Assert.Throws<ArgumentException>(() =>
+           {
+               var prop2 = DynamicProperties.Factory.AsProperty(10, "test");
+           });
+        }
+
+        [Fact]
+        public void PropertyChangedTest()
+        {
+            DynamicProperties.Instance.Reset();
+
+            var cx = 0;
+            DynamicProperties.Instance.PropertyChanged += (s, e) => { if (e.Property.Name == "test") cx += (int)e.Property.GetValue(); };
+
+            var prop = DynamicProperties.Factory.AsProperty(10, "test");
+            prop.Set(15);
+            var prop2 = DynamicProperties.Factory.AsProperty(10, "test2");
+            prop.Set(20);
+            Assert.Equal(10 + 15 + 20, cx);
+            Assert.Equal(20, prop.Get());
+        }
+
+        [Fact]
+        public void MultiTypesTest()
+        {
+            DynamicProperties.Instance.Reset();
+
+            Assert.Equal(10, DynamicProperties.Factory.AsProperty(10, "test").Get());
+            Assert.Equal(2.0, DynamicProperties.Factory.AsProperty(2.0, "test2").Get());
+            Assert.Equal("xxx", DynamicProperties.Factory.AsProperty("xxx", "test3").Get());
+            Assert.Equal(true, DynamicProperties.Factory.AsProperty(true, "test4").Get());
+            var v = new CultureInfo("fr");
+            Assert.Equal(v, DynamicProperties.Factory.AsProperty(v, "test5").Get());
+            var v2 = new int[] { 1, 2, 3 };
+            Assert.Equal(v2, DynamicProperties.Factory.AsProperty(v2, "test6").Get());
+        }
+    }
+}
