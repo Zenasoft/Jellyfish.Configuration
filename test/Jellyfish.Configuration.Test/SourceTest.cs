@@ -26,7 +26,7 @@ namespace Jellyfish.Configuration.Tests
             prop = properties.GetProperty<int>("test");
             Assert.Null(prop);
 
-            Thread.Sleep(properties.PollingIntervalInSeconds*1000);
+            Thread.Sleep(properties.PollingIntervalInSeconds*1100);
 
             prop = properties.GetProperty<int>("test");
             Assert.NotNull(prop);
