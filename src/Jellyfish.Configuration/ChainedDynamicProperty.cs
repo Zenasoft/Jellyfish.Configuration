@@ -11,6 +11,7 @@ namespace Jellyfish.Configuration
     /// Create a chained property composed with a dynamic property and fallback properties used if the main property is not defined.
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [System.Diagnostics.DebuggerDisplay("{Get()}")]
     public class ChainedDynamicProperty<T> : IDynamicProperty<T>
     {
         private string[] _properties;

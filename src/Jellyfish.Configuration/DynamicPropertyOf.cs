@@ -5,6 +5,7 @@ using System;
 
 namespace Jellyfish.Configuration
 {
+    [System.Diagnostics.DebuggerDisplay("{value}")]
     internal class DynamicProperty<T> : IDynamicProperty<T>
     {
         private T value;
