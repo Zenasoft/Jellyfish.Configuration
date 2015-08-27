@@ -33,8 +33,7 @@ namespace Jellyfish.Configuration
                 {
                     if (_instance == null)
                     {
-                        _instance = new DynamicProperties();
-                        _instance.Reset(pollingIntervalInSeconds, sourceTimeoutInMs);
+                        _instance = new DynamicProperties(pollingIntervalInSeconds, sourceTimeoutInMs);
                         if (config != null)
                         {
                             Instance.RegisterSource(new AspConfigurationSource(config));
@@ -45,21 +44,21 @@ namespace Jellyfish.Configuration
             return _instance;
         }
 
-        private DynamicProperties()
+        internal DynamicProperties(int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
             _factory = new PropertiesFactory(this);
+            Reset(pollingIntervalInSeconds, sourceTimeoutInMs);
         }
 
         public void Reset(int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
             _properties = new Dictionary<string, IDynamicPropertyBase>(Comparer);
-            _configurationManager = new ConfigurationManager(this);
+            _configurationManager = new ConfigurationManager(this, pollingIntervalInSeconds, sourceTimeoutInMs);
         }
 
         public int PollingIntervalInSeconds
         {
             get { return _configurationManager != null ? _configurationManager.PollingIntervalInSeconds : 0; }
-            set { if (_configurationManager != null) _configurationManager.PollingIntervalInSeconds = value; }
         }
 
         internal IDictionary<string, IDynamicPropertyBase> Properties { get { return _properties; } }
@@ -110,7 +109,7 @@ namespace Jellyfish.Configuration
             IDynamicPropertyBase p;
             if (_properties.TryGetValue(name, out p))
                 return p as IDynamicProperty<T>;
-            return Factory.AsProperty(defaultValue, name);
+            return _factory.AsProperty(defaultValue, name);
         }
 
         IDynamicPropertyBase IDynamicPropertiesUpdater.GetOrCreate(string key, Func<IDynamicPropertyBase> factory)

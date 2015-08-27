@@ -21,6 +21,9 @@ namespace Jellyfish.Configuration
     public interface IDynamicProperties
     {
         IPropertiesFactory Factory { get; }
+
+        int PollingIntervalInSeconds { get; }
+
         event EventHandler<DynamicPropertyChangedEventArgs> PropertyChanged;
         IDynamicProperty<T> SetProperty<T>(string name, T value);
         void RemoveProperty(string name);
