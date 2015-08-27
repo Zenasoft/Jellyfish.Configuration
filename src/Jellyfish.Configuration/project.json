@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-beta2-*",
+  "version": "1.0.0-beta2-101",
   "description": "Dynamic configuration framework.",
   "requireLicenseAcceptance": true,
   "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
@@ -10,7 +10,7 @@
   "dependencies": {
     "Newtonsoft.Json": "7.0.1",
     "System.Net.Http": "4.0.0",
-    "Microsoft.Framework.Configuration": "1.0.0-beta8-*"
+    "Microsoft.Framework.Configuration": "1.0.0-beta8-15089"
   },
   "repository": {
     "type": "git",
