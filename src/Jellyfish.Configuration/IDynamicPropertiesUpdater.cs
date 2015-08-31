@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Zenasoft. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.Internal;
 using System;
 
 namespace Jellyfish.Configuration
@@ -14,7 +15,7 @@ namespace Jellyfish.Configuration
         /// Remove an unused property
         /// </summary>
         /// <param name="name"></param>
-        void RemoveProperty(string name);
+        void RemoveProperty([NotNull]string name);
 
         /// <summary>
         /// Get or create a property
@@ -22,6 +23,6 @@ namespace Jellyfish.Configuration
         /// <param name="key">Property name</param>
         /// <param name="factory">Property factory</param>
         /// <returns></returns>
-        IDynamicProperty GetOrCreate(string key, Func<IDynamicProperty> factory);
+        IDynamicProperty GetOrCreate([NotNull]string key, Func<IDynamicProperty> factory);
     }
 }

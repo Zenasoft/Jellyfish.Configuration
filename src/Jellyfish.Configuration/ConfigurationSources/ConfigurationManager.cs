@@ -4,10 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Diagnostics.Contracts;
+
 using System.Threading;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Framework.Internal;
 
 namespace Jellyfish.Configuration
 {
@@ -20,9 +21,8 @@ namespace Jellyfish.Configuration
 
         public int PollingIntervalInSeconds { get; internal set; }
 
-        internal ConfigurationManager(IDynamicPropertiesUpdater properties, int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
+        internal ConfigurationManager([NotNull]IDynamicPropertiesUpdater properties, int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
-            Contract.Assert(properties != null);
             this.sourceTimeoutInMs = sourceTimeoutInMs;
             this.PollingIntervalInSeconds = pollingIntervalInSeconds;
             this.sourceTimeoutInMs = sourceTimeoutInMs;
@@ -124,9 +124,8 @@ namespace Jellyfish.Configuration
             }
         }
 
-        public void RegisterSource(IConfigurationSource source)
+        public void RegisterSource([NotNull]IConfigurationSource source)
         {
-            Contract.Assert(source != null);
             if (sources.Contains(source))
                 throw new InvalidOperationException("Duplicate source");
 

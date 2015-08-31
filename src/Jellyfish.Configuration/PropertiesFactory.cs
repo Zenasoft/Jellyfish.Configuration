@@ -1,8 +1,9 @@
 // Copyright (c) Zenasoft. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.Internal;
 using System;
-using System.Diagnostics.Contracts;
+
 
 namespace Jellyfish.Configuration
 {
@@ -10,17 +11,13 @@ namespace Jellyfish.Configuration
     {
         private DynamicProperties _properties;
 
-        internal PropertiesFactory(DynamicProperties dynamicProperties)
+        internal PropertiesFactory([NotNull]DynamicProperties dynamicProperties)
         {
-            Contract.Requires(dynamicProperties != null);
             this._properties = dynamicProperties;
         }
 
-        private void Add<T>(string name, IDynamicProperty<T> prop)
+        private void Add<T>([NotNull]string name, [NotNull]IDynamicProperty<T> prop)
         {
-            Contract.Requires(!String.IsNullOrEmpty(name));
-            Contract.Requires(prop != null);
-
             _properties.Properties.Add(name, prop);
         }
 
@@ -33,10 +30,9 @@ namespace Jellyfish.Configuration
             return p;
         }
 
-        public IDynamicProperty<T> AsChainedProperty<T>(string name, T defaultValue = default(T), params string[] fallbackPropertyNames)
+        public IDynamicProperty<T> AsChainedProperty<T>([NotNull]string name, T defaultValue = default(T), params string[] fallbackPropertyNames)
         {
-            Contract.Requires(!String.IsNullOrEmpty(name));
-            Contract.Requires(fallbackPropertyNames.Length > 0, "You must provide at least on efallback property name");
+            if(fallbackPropertyNames.Length == 0) throw new ArgumentException("You must provide at least on efallback property name");
 
             var properties = new string[fallbackPropertyNames.Length + 1];
             properties[0] = name;

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Zenasoft. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.Internal;
+
 namespace Jellyfish.Configuration
 {
     /// <summary>
@@ -24,6 +26,6 @@ namespace Jellyfish.Configuration
         /// <param name="defaultValue">Default value</param>
         /// <param name="fallbackPropertyNames">List of properties to chain. The first is the main property</param>
         /// <returns>A dynamic property instance</returns>
-        IDynamicProperty<T> AsChainedProperty<T>(string propertyName, T defaultValue = default(T), params string[] fallbackPropertyNames);
+        IDynamicProperty<T> AsChainedProperty<T>([NotNull]string propertyName, T defaultValue = default(T), params string[] fallbackPropertyNames);
     }
 }

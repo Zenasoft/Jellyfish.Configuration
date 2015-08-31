@@ -1,9 +1,10 @@
 // Copyright (c) Zenasoft. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.Internal;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+
 using System.Threading;
 
 namespace Jellyfish.Configuration
@@ -151,9 +152,8 @@ namespace Jellyfish.Configuration
         /// </summary>
         /// <param name="source">A new configuration source</param>
         /// <returns></returns>
-        public IDynamicProperties RegisterSource(IConfigurationSource source)
+        public IDynamicProperties RegisterSource([NotNull]IConfigurationSource source)
         {
-            Contract.Requires(source!=null);
             _configurationManager.RegisterSource(source);
             return this;
         }
@@ -164,10 +164,8 @@ namespace Jellyfish.Configuration
         /// <typeparam name="T">Property type</typeparam>
         /// <param name="name">Property name</param>
         /// <returns>A dynamic property instance or null if not exists.</returns>
-        public IDynamicProperty<T> GetProperty<T>(string name)
+        public IDynamicProperty<T> GetProperty<T>([NotNull]string name)
         {
-            Contract.Requires(!String.IsNullOrEmpty(name));
-
             IDynamicProperty p;
             _properties.TryGetValue(name, out p);
             return p as IDynamicProperty<T>;
@@ -180,9 +178,8 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="value">Default value</param>
         /// <returns>A dynamic property instance</returns>
-        public IDynamicProperty<T> CreateOrUpdateProperty<T>(string name, T value)
+        public IDynamicProperty<T> CreateOrUpdateProperty<T>([NotNull]string name, T value)
         {
-            Contract.Requires(!String.IsNullOrEmpty(name));
             IDynamicProperty p;
             if (!_properties.TryGetValue(name, out p))
             {
@@ -202,18 +199,16 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="defaultValue">Default value</param>
         /// <returns>A dynamic property instance</returns>
-        public IDynamicProperty<T> GetOrCreateProperty<T>(string name, T defaultValue=default(T))
+        public IDynamicProperty<T> GetOrCreateProperty<T>([NotNull]string name, T defaultValue=default(T))
         {
-            Contract.Requires(!String.IsNullOrEmpty(name));
             IDynamicProperty p;
             if (_properties.TryGetValue(name, out p))
                 return p as IDynamicProperty<T>;
             return _factory.AsProperty(defaultValue, name);
         }
 
-        IDynamicProperty IDynamicPropertiesUpdater.GetOrCreate(string key, Func<IDynamicProperty> factory)
+        IDynamicProperty IDynamicPropertiesUpdater.GetOrCreate([NotNull]string key, Func<IDynamicProperty> factory)
         {
-            Contract.Requires(!String.IsNullOrEmpty(key));
             IDynamicProperty prop;
 
             Dictionary<string, IDynamicProperty> initial;
@@ -232,10 +227,8 @@ namespace Jellyfish.Configuration
             return prop;
         }
 
-        void IDynamicPropertiesUpdater.RemoveProperty(string name)
+        void IDynamicPropertiesUpdater.RemoveProperty([NotNull]string name)
         {
-            Contract.Requires(!String.IsNullOrEmpty(name));
-
             IDynamicProperty p;
             if (_properties.TryGetValue(name, out p))
             {

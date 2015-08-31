@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Zenasoft. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.Internal;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Jellyfish.Configuration
         /// </summary>
         public IDictionary<string, object> Values { get; private set; }
 
-        public PollResult(IDictionary<string, object> values)
+        public PollResult([NotNull]IDictionary<string, object> values)
         {
             Values = values;
         }
@@ -36,6 +37,6 @@ namespace Jellyfish.Configuration
         /// <summary>
         /// Poll the configuration source to get the latest content.
         /// </summary>
-        Task<PollResult> PollProperties( CancellationToken token);
+        Task<PollResult> PollProperties([NotNull] CancellationToken token);
     }
 }

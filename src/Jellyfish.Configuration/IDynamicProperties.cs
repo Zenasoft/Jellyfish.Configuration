@@ -1,6 +1,7 @@
 // Copyright (c) Zenasoft. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Framework.Internal;
 using System;
 
 namespace Jellyfish.Configuration
@@ -86,7 +87,7 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="value">Default value</param>
         /// <returns>A dynamic property instance</returns
-        IDynamicProperty<T> CreateOrUpdateProperty<T>(string name, T value);
+        IDynamicProperty<T> CreateOrUpdateProperty<T>([NotNull]string name, T value);
 
         /// <summary>
         /// Get a property or null if not exists
@@ -94,7 +95,7 @@ namespace Jellyfish.Configuration
         /// <typeparam name="T">Property type</typeparam>
         /// <param name="name">Property name</param>
         /// <returns>A dynamic property instance or null if not exists.</returns>
-        IDynamicProperty<T> GetProperty<T>(string name);
+        IDynamicProperty<T> GetProperty<T>([NotNull]string name);
 
         /// <summary>
         /// Get a property or create a new one with a default value if not exists
@@ -103,13 +104,13 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="defaultValue">Default value</param>
         /// <returns>A dynamic property instance</returns>
-        IDynamicProperty<T> GetOrCreateProperty<T>(string name, T defaultValue);
+        IDynamicProperty<T> GetOrCreateProperty<T>([NotNull]string name, T defaultValue);
 
         /// <summary>
         /// Add a new configuration source for polling
         /// </summary>
         /// <param name="source">A new configuration source</param>
         /// <returns></returns>
-        IDynamicProperties RegisterSource(IConfigurationSource source);
+        IDynamicProperties RegisterSource([NotNull]IConfigurationSource source);
     }
 }

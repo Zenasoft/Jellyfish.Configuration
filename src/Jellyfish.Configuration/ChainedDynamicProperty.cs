@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.Contracts;
+
 using System.Linq;
 using System.Threading;
 
@@ -38,7 +38,7 @@ namespace Jellyfish.Configuration
 
         internal ChainedDynamicProperty(DynamicProperties manager, T defaultValue = default(T), params string[] properties)
         {
-            Contract.Requires(properties.Length > 2, "You must provided at least 2 properties.");
+            if(properties.Length < 2) throw new ArgumentException("You must provided at least 2 properties.");
             _propertiesManager = manager;
             _fallbackProperties = properties.ToArray();
             _defaultValue = defaultValue;
