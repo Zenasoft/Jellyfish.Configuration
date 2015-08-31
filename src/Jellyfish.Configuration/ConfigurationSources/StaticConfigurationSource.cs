@@ -10,17 +10,25 @@ using System.Threading.Tasks;
 
 namespace Jellyfish.Configuration.Sources
 {
-    public class StaticConfigurationSource : AbstractConfigurationSource
+    /// <summary>
+    /// Static configuration source
+    /// </summary>
+    public class StaticConfigurationSource : IConfigurationSource
     {
         private ConcurrentDictionary<string, object> _values = new ConcurrentDictionary<string, object>();
 
+        /// <summary>
+        /// Set a update a new property
+        /// </summary>
+        /// <param name="name">Property name</param>
+        /// <param name="value">Property value</param>
         public void Set(string name, object value)
         {
             Contract.Requires(!String.IsNullOrEmpty(name));
             _values.AddOrUpdate(name, value, (_,__) => value);
         }
 
-        public override Task<PollResult> LoadProperties(CancellationToken token)
+        Task<PollResult> IConfigurationSource.PollProperties(CancellationToken token)
         {
             var t = Task.FromResult( new PollResult( new Dictionary<string,object>( _values)));
             _values.Clear();

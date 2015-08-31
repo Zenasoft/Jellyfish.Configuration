@@ -11,12 +11,29 @@ namespace Jellyfish.Configuration
         Removed
     }
 
+    /// <summary>
+    /// Dynamic property changed event
+    /// </summary>
     public class DynamicPropertyChangedEventArgs : EventArgs
     {
-        public IDynamicPropertyBase Property { get; private set; }
+        /// <summary>
+        /// Current typed property
+        /// </summary>
+        /// <typeparam name="T">Property type</typeparam>
+        /// <returns></returns>
+        public IDynamicProperty<T> GetPropertyAs<T>() { return (IDynamicProperty<T>)Property; }
+
+        /// <summary>
+        /// Current property
+        /// </summary>
+        public IDynamicProperty Property { get; private set; }
+
+        /// <summary>
+        /// Get the change action
+        /// </summary>
         public PropertyChangedAction Action { get; private set; }
 
-        public DynamicPropertyChangedEventArgs(IDynamicPropertyBase property, PropertyChangedAction action)
+        internal DynamicPropertyChangedEventArgs(IDynamicProperty property, PropertyChangedAction action)
         {
             this.Action = action;
             this.Property = property;

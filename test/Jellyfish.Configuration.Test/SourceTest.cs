@@ -30,7 +30,7 @@ namespace Jellyfish.Configuration.Tests
 
             prop = properties.GetProperty<int>("test");
             Assert.NotNull(prop);
-            Assert.Equal(10, prop.Get());
+            Assert.Equal(10, prop.Value);
         }
 
         [Fact]
@@ -41,20 +41,20 @@ namespace Jellyfish.Configuration.Tests
             var source = new StaticConfigurationSource();
             properties.RegisterSource(source);
 
-            var chained = properties.Factory.AsChainedProperty(30, "test10", "test20");
-            Assert.Equal(30, properties.Factory.AsChainedProperty(30, "test10", "test20").Get());
+            var chained = properties.Factory.AsChainedProperty("test10", 30,  "test20");
+            Assert.Equal(30, properties.Factory.AsChainedProperty("test10", 30,  "test20").Value);
 
             source.Set("test20", 20);
-            Thread.Sleep(properties.PollingIntervalInSeconds * 1100);
-            Assert.Equal(20, chained.Get());
+            Thread.Sleep(properties.PollingIntervalInSeconds * 1200);
+            Assert.Equal(20, chained.Value);
 
             source.Set("test10", 10);
             Thread.Sleep(properties.PollingIntervalInSeconds * 1100);
-            Assert.Equal(10, chained.Get());
+            Assert.Equal(10, chained.Value);
 
             source.Set("test10", 11);
             Thread.Sleep(properties.PollingIntervalInSeconds * 1100);
-            Assert.Equal(11, chained.Get());
+            Assert.Equal(11, chained.Value);
         }
 
 
@@ -69,16 +69,16 @@ namespace Jellyfish.Configuration.Tests
             var source2 = new StaticConfigurationSource();
             properties.RegisterSource(source2);
              
-            var prop = properties.GetOrDefaultProperty<int>("test30");
-            Assert.Equal(0, prop.Get());
+            var prop = properties.GetOrCreateProperty<int>("test30");
+            Assert.Equal(0, prop.Value);
 
             source1.Set("test30", 10);
             Thread.Sleep(properties.PollingIntervalInSeconds * 1100);
-            Assert.Equal(10, prop.Get());
+            Assert.Equal(10, prop.Value);
 
             source2.Set("test30", 20);
             Thread.Sleep(properties.PollingIntervalInSeconds * 1100);
-            Assert.Equal(20, prop.Get());
+            Assert.Equal(20, prop.Value);
         }
     }
 }

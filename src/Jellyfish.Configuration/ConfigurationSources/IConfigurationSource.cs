@@ -7,10 +7,19 @@ using System.Threading.Tasks;
 
 namespace Jellyfish.Configuration
 {
+    /// <summary>
+    /// This class represents a result from a poll of configuration source
+    /// </summary>
     public class PollResult
     {
+        /// <summary>
+        /// Empty result
+        /// </summary>
         public static PollResult Empty = new PollResult(new Dictionary<string,object>());
 
+        /// <summary>
+        /// Values to update
+        /// </summary>
         public IDictionary<string, object> Values { get; private set; }
 
         public PollResult(IDictionary<string, object> values)
@@ -19,8 +28,14 @@ namespace Jellyfish.Configuration
         }
     }
 
+    /// <summary>
+    /// The definition of configuration source that brings dynamic changes to the configuration via polling.
+    /// </summary>
     public interface IConfigurationSource
     {
-        Task<PollResult> LoadProperties( CancellationToken token);
+        /// <summary>
+        /// Poll the configuration source to get the latest content.
+        /// </summary>
+        Task<PollResult> PollProperties( CancellationToken token);
     }
 }

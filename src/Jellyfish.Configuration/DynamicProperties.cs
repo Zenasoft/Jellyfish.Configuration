@@ -8,24 +8,68 @@ using System.Threading;
 
 namespace Jellyfish.Configuration
 {
+    /// <summary>
+    /// Provides dynamic properties updating when the config is changed.
+    /// Accessing a dynamic property is very fast and thread safe. The last value is cached and updated on the fly from a <see cref="IConfigurationSource"/> at fixed interval.
+    /// Updates are made using polling requests on a list of sources.
+    /// <para>
+    /// Dynamic properties are read only. You can set a value but it will be valid only as a default value.
+    /// </para>
+    /// <para>
+    /// DynamicProperty objects are not subject to normal garbage collection.
+    /// They should be used only as a static value that lives for the
+    /// lifetime of the program.
+    /// </para>
+    /// <code>
+    /// var i = DynamicProperties.Instance.GetProperty<int>("prop1");
+    /// var i2 = DynamicProperties.Instance.GetOrDefaultProperty<int>("prop1", 1);
+    /// </code>
+    /// </summary>
     public sealed class DynamicProperties : IDynamicProperties, IDynamicPropertiesUpdater, IDisposable
     {
+        /// <summary>
+        /// Raises when a property has changed
+        /// </summary>
         public event EventHandler<DynamicPropertyChangedEventArgs> PropertyChanged;
 
         private static object _sync = new object();
         private static DynamicProperties _instance;
-
         private PropertiesFactory _factory;
-        IPropertiesFactory IDynamicProperties.Factory { get { return _factory; } }
-        private ConfigurationManager _configurationManager;
-        private Dictionary<string, IDynamicPropertyBase> _properties = new Dictionary<string, IDynamicPropertyBase>(Comparer);
         internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
+        // Manage sources and polling
+        private ConfigurationManager _configurationManager;
+        private Dictionary<string, IDynamicProperty> _properties = new Dictionary<string, IDynamicProperty>(Comparer);
+        internal IDictionary<string, IDynamicProperty> Properties { get { return _properties; } }
 
-        public static DynamicProperties Instance { get { if (_instance == null) { Create(); } return _instance; } }
+        /// <summary>
+        /// Get the dynamic properties factory
+        /// </summary>
+        IPropertiesFactory IDynamicProperties.Factory { get { return _factory; } }
 
+        /// <summary>
+        /// Properties factory used to create new property from a value
+        /// </summary>
         public static IPropertiesFactory Factory { get { return Instance._factory; } }
 
-        public static IDynamicProperties Create(Microsoft.Framework.Configuration.IConfiguration config=null, int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
+        /// <summary>
+        /// Get a singleton instance
+        /// </summary>
+        public static DynamicProperties Instance {
+            get
+            {
+                if (_instance == null) { Init(); }
+                return _instance;
+            }
+        }
+
+        /// <summary>
+        /// Initialise dynamic properties configuration. Can be call only once and before any call to DynamicProperties.Instance.
+        /// </summary>
+        /// <param name="config">AspNet5 IConfiguration used to initialize values.</param>
+        /// <param name="pollingIntervalInSeconds">Polling interval in seconds (default 60)</param>
+        /// <param name="sourceTimeoutInMs">Max time allowed to a source to retrieve new values (Cancel the request but doesn't raise an error)</param>
+        /// <returns>Current DynamicProperties instance</returns>
+        public static IDynamicProperties Init(Microsoft.Framework.Configuration.IConfiguration config=null, int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
             if (_instance == null)
             {
@@ -40,30 +84,60 @@ namespace Jellyfish.Configuration
                         }
                     }
                 }
+                return _instance;
             }
-            return _instance;
+
+            throw new Exception("Can not initialize an active instance. Use Reset().");
         }
 
+        /// <summary>
+        /// Private constructor
+        /// </summary>
+        /// <param name="pollingIntervalInSeconds"></param>
+        /// <param name="sourceTimeoutInMs"></param>
         internal DynamicProperties(int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
             _factory = new PropertiesFactory(this);
             Reset(pollingIntervalInSeconds, sourceTimeoutInMs);
         }
 
+        /// <summary>
+        /// Reset configuration and properties. 
+        /// All current properties will be invalid and all current sources will be lost.
+        /// </summary>
+        /// <param name="pollingIntervalInSeconds"></param>
+        /// <param name="sourceTimeoutInMs"></param>
         public void Reset(int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
-            _properties = new Dictionary<string, IDynamicPropertyBase>(Comparer);
-            _configurationManager = new ConfigurationManager(this, pollingIntervalInSeconds, sourceTimeoutInMs);
+            var tmp = _properties;
+            var tmp2 = _configurationManager;
+
+            Interlocked.Exchange(ref _properties, new Dictionary<string, IDynamicProperty>(Comparer));
+            Interlocked.Exchange(ref _configurationManager, new ConfigurationManager(this, pollingIntervalInSeconds, sourceTimeoutInMs));
+
+            if (tmp != null)
+            {
+                foreach (var prop in tmp.Values)
+                {
+                    prop.Dispose();
+                }
+                tmp.Clear();
+            }
+
+            if( tmp2 != null)
+                tmp2.Dispose();
         }
 
+        /// <summary>
+        /// Get the polling time before updates
+        /// </summary>
         public int PollingIntervalInSeconds
         {
             get { return _configurationManager != null ? _configurationManager.PollingIntervalInSeconds : 0; }
         }
 
-        internal IDictionary<string, IDynamicPropertyBase> Properties { get { return _properties; } }
 
-        internal void OnPropertyChanged(IDynamicPropertyBase property, PropertyChangedAction action)
+        internal void OnPropertyChanged(IDynamicProperty property, PropertyChangedAction action)
         {
             var tmp = PropertyChanged;
             if( tmp != null)
@@ -72,6 +146,11 @@ namespace Jellyfish.Configuration
             }
         }
 
+        /// <summary>
+        /// Add a new configuration source for polling
+        /// </summary>
+        /// <param name="source">A new configuration source</param>
+        /// <returns></returns>
         public IDynamicProperties RegisterSource(IConfigurationSource source)
         {
             Contract.Requires(source!=null);
@@ -79,22 +158,35 @@ namespace Jellyfish.Configuration
             return this;
         }
 
+        /// <summary>
+        /// Get a property or null if not exists
+        /// </summary>
+        /// <typeparam name="T">Property type</typeparam>
+        /// <param name="name">Property name</param>
+        /// <returns>A dynamic property instance or null if not exists.</returns>
         public IDynamicProperty<T> GetProperty<T>(string name)
         {
             Contract.Requires(!String.IsNullOrEmpty(name));
 
-            IDynamicPropertyBase p;
+            IDynamicProperty p;
             _properties.TryGetValue(name, out p);
             return p as IDynamicProperty<T>;
         }
 
-        public IDynamicProperty<T> SetProperty<T>(string name, T value)
+        /// <summary>
+        /// Create or update a property with a value
+        /// </summary>
+        /// <typeparam name="T">Property type</typeparam>
+        /// <param name="name">Property name</param>
+        /// <param name="value">Default value</param>
+        /// <returns>A dynamic property instance</returns>
+        public IDynamicProperty<T> CreateOrUpdateProperty<T>(string name, T value)
         {
             Contract.Requires(!String.IsNullOrEmpty(name));
-            IDynamicPropertyBase p;
+            IDynamicProperty p;
             if (!_properties.TryGetValue(name, out p))
             {
-                p = Factory.AsProperty(value, name);
+                p = _factory.AsProperty(value, name);
             }
             else
             {
@@ -103,28 +195,35 @@ namespace Jellyfish.Configuration
             return p as IDynamicProperty<T>;
         }
 
-        public IDynamicProperty<T> GetOrDefaultProperty<T>(string name, T defaultValue=default(T))
+        /// <summary>
+        /// Get a property or create a new one with a default value if not exists
+        /// </summary>
+        /// <typeparam name="T">Property type</typeparam>
+        /// <param name="name">Property name</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <returns>A dynamic property instance</returns>
+        public IDynamicProperty<T> GetOrCreateProperty<T>(string name, T defaultValue=default(T))
         {
             Contract.Requires(!String.IsNullOrEmpty(name));
-            IDynamicPropertyBase p;
+            IDynamicProperty p;
             if (_properties.TryGetValue(name, out p))
                 return p as IDynamicProperty<T>;
             return _factory.AsProperty(defaultValue, name);
         }
 
-        IDynamicPropertyBase IDynamicPropertiesUpdater.GetOrCreate(string key, Func<IDynamicPropertyBase> factory)
+        IDynamicProperty IDynamicPropertiesUpdater.GetOrCreate(string key, Func<IDynamicProperty> factory)
         {
             Contract.Requires(!String.IsNullOrEmpty(key));
-            IDynamicPropertyBase prop;
+            IDynamicProperty prop;
 
-            Dictionary<string, IDynamicPropertyBase> initial;
-            Dictionary<string, IDynamicPropertyBase> tmp;
+            Dictionary<string, IDynamicProperty> initial;
+            Dictionary<string, IDynamicProperty> tmp;
             do
             {
                 if (_properties.TryGetValue(key, out prop)) break;
 
                 initial = _properties;
-                tmp = new Dictionary<string, IDynamicPropertyBase>(initial);
+                tmp = new Dictionary<string, IDynamicProperty>(initial);
                 prop = factory();
                 tmp.Add(key, prop);
             }
@@ -133,11 +232,11 @@ namespace Jellyfish.Configuration
             return prop;
         }
 
-        public void RemoveProperty(string name)
+        void IDynamicPropertiesUpdater.RemoveProperty(string name)
         {
             Contract.Requires(!String.IsNullOrEmpty(name));
 
-            IDynamicPropertyBase p;
+            IDynamicProperty p;
             if (_properties.TryGetValue(name, out p))
             {
                 _properties.Remove(name);
@@ -147,6 +246,10 @@ namespace Jellyfish.Configuration
 
         public void Dispose()
         {
+            foreach (var prop in _properties.Values)
+            {
+                prop.Dispose();
+            }
             _configurationManager.Dispose();
             _properties.Clear();
             _factory = null;

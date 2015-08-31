@@ -5,8 +5,23 @@ using System;
 
 namespace Jellyfish.Configuration
 {
-    interface IDynamicPropertiesUpdater
+    /// <summary>
+    /// Interface used by <see cref="ConfigurationManager"/> to update properties
+    /// </summary>
+    internal interface IDynamicPropertiesUpdater
     {
-        IDynamicPropertyBase GetOrCreate(string key, Func<IDynamicPropertyBase> factory);
+        /// <summary>
+        /// Remove an unused property
+        /// </summary>
+        /// <param name="name"></param>
+        void RemoveProperty(string name);
+
+        /// <summary>
+        /// Get or create a property
+        /// </summary>
+        /// <param name="key">Property name</param>
+        /// <param name="factory">Property factory</param>
+        /// <returns></returns>
+        IDynamicProperty GetOrCreate(string key, Func<IDynamicProperty> factory);
     }
 }

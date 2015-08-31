@@ -7,13 +7,19 @@ using System.Threading.Tasks;
 
 namespace Jellyfish.Configuration
 {
-    internal class UrlConfigurationSource : AbstractConfigurationSource
+    public class UrlConfigurationSource : AbstractConfigurationSource, IConfigurationSource
     {
         private string uri;
 
-        public override async Task<PollResult> LoadProperties(CancellationToken token)
+        public UrlConfigurationSource(string uri)
+        {
+            this.uri = uri;
+        }
+
+        async Task<PollResult> IConfigurationSource.PollProperties(CancellationToken token)
         {
             var client = new HttpClient();
+
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var resp = await client.SendAsync(request, token);
             if (!resp.IsSuccessStatusCode) return PollResult.Empty;

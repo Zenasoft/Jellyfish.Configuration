@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Zenasoft. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
@@ -9,34 +10,37 @@ namespace Jellyfish.Configuration
 {
     /// <summary>
     /// Create a chained property composed with a dynamic property and fallback properties used if the main property is not defined.
+    /// A chained property works with fallback values. If the first is not defined, the value is founded in the first property values defined in the fallback list
+    /// and then the default value.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    [System.Diagnostics.DebuggerDisplay("{Get()}")]
+    /// <typeparam name="T">Property type</typeparam>
+    [System.Diagnostics.DebuggerDisplay("{Value}")]
     public class ChainedDynamicProperty<T> : IDynamicProperty<T>
     {
-        private string[] _properties;
+        private string[] _fallbackProperties;
         private IDynamicProperty<T> _activeProperty;
         private DynamicProperties _propertiesManager;
         private T _defaultValue;
+        private bool disposed = false;
 
-        string IDynamicPropertyBase.Name
+        string IDynamicProperty.Name
         {
             get
             {
-                return _properties[0];
+                return _fallbackProperties[0];
             }
         }
 
-        object IDynamicPropertyBase.GetValue()
+        object IDynamicProperty.GetValue()
         {
-            return Get();
+            return Value;
         }
 
         internal ChainedDynamicProperty(DynamicProperties manager, T defaultValue = default(T), params string[] properties)
         {
             Contract.Requires(properties.Length > 2, "You must provided at least 2 properties.");
             _propertiesManager = manager;
-            _properties = properties.ToArray();
+            _fallbackProperties = properties.ToArray();
             _defaultValue = defaultValue;
             _propertiesManager.PropertyChanged += OnPropertyChanged;
 
@@ -46,7 +50,7 @@ namespace Jellyfish.Configuration
         protected void Reset()
         {
             IDynamicProperty<T> tmp = null;
-            foreach(var propertyName in _properties)
+            foreach(var propertyName in _fallbackProperties)
             {
                 tmp = _propertiesManager.GetProperty<T>(propertyName);
                 if(tmp != null)
@@ -59,30 +63,60 @@ namespace Jellyfish.Configuration
 
         private void OnPropertyChanged(object sender, DynamicPropertyChangedEventArgs e)
         {
-            if (_properties.Contains(e.Property.Name, DynamicProperties.Comparer))
+            if (_fallbackProperties.Contains(e.Property.Name, DynamicProperties.Comparer))
             {
                 Reset();
             }
         }
 
-        public T Get()
+        /// <summary>
+        /// Current value
+        /// </summary>
+        public T Value
         {
-            return _activeProperty != null ? _activeProperty.Get() : _defaultValue;
+            get
+            {
+                if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
+
+                return _activeProperty != null ? _activeProperty.Value : _defaultValue;
+            }
         }
 
+        /// <summary>
+        /// Update default property value. This value can be overrided by a <see cref="IConfigurationSource"/>. 
+        /// Doesn't update source values.
+        /// Assigning a value as precedence on all overriding properties
+        /// Only the main property has precedence so others are ignored
+        /// </summary>
+        /// <param name="value">Property value</param>
         public void Set(T value)
         {
+            if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
+
             _defaultValue = value;
             // Assigning a value as precedence on all overriding properties
             // Only the main property (the first) has precedence so ignore other one
-            var tmp = _properties.Take(1).ToArray();
-            Interlocked.Exchange(ref _properties, tmp);
+            var tmp = _fallbackProperties.Take(1).ToArray();
+            Interlocked.Exchange(ref _fallbackProperties, tmp);
             Reset();
         }
 
-        public void Set(object value)
+        void IDynamicProperty.Set(object value)
         {
             this.Set((T)value);
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+             disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

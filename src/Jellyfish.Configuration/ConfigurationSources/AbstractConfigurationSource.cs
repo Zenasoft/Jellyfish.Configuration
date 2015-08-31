@@ -7,14 +7,12 @@ using System.Threading.Tasks;
 
 namespace Jellyfish.Configuration
 {
-    public abstract class AbstractConfigurationSource : IConfigurationSource
+    public abstract class AbstractConfigurationSource 
     {
         protected bool FirstTime { get; set; } = true;
         protected static Task<PollResult> EmptyResult = Task.FromResult(PollResult.Empty);
 
-        public abstract Task<PollResult> LoadProperties(CancellationToken token);
-
-        protected object ConvertValue(string value)
+        protected object ConvertJsonValue(string value)
         {
             try
             {

@@ -9,8 +9,8 @@ namespace Jellyfish.Configuration
     internal class DynamicProperty<T> : IDynamicProperty<T>
     {
         private T value;
-        public string Name { get; private set; }
         private DynamicProperties propertiesManager;
+        private bool disposed = false;
 
         internal DynamicProperty(DynamicProperties manager, string name)
         {
@@ -18,13 +18,31 @@ namespace Jellyfish.Configuration
             this.propertiesManager = manager;
         }
 
-        public T Get()
+        /// <summary>
+        /// Property name
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
+        /// Current value
+        /// </summary>
+        public T Value
         {
-            return (T)value;
+            get
+            {
+                if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
+                return (T)value;
+            }
         }
 
+        /// <summary>
+        /// Update local property value. This value can be overrided by a <see cref="IConfigurationSource"/>. 
+        /// Doesn't update source values.
+        /// </summary>
+        /// <param name="value">Property value</param>
         public void Set(T value)
         {
+            if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
             if (!Object.Equals(this.value, value))
             {
                 this.value = value;
@@ -32,14 +50,28 @@ namespace Jellyfish.Configuration
             }
         }
 
-        object IDynamicPropertyBase.GetValue()
+        object IDynamicProperty.GetValue()
         {
-            return Get();
+            return Value;
         }
 
-        void IDynamicPropertyBase.Set(object value)
+        void IDynamicProperty.Set(object value)
         {
             this.Set((T)value);
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            disposed = true;
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

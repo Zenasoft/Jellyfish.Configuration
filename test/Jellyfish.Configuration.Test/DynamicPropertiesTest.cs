@@ -15,8 +15,8 @@ namespace Jellyfish.Configuration.Tests
             DynamicProperties.Instance.Reset();
 
             Assert.Null(DynamicProperties.Instance.GetProperty<int>("test"));
-            var p = DynamicProperties.Instance.GetOrDefaultProperty<int>("test");
-            Assert.Equal(0, p.Get());
+            var p = DynamicProperties.Instance.GetOrCreateProperty<int>("test");
+            Assert.Equal(0, p.Value);
         }
 
         [Fact]
@@ -26,12 +26,12 @@ namespace Jellyfish.Configuration.Tests
 
             var prop = DynamicProperties.Factory.AsProperty(10, "test");
             Assert.NotNull(prop);
-            Assert.Equal(10, prop.Get());
-            var p = DynamicProperties.Instance.GetOrDefaultProperty<int>("test");
-            Assert.Equal(10, p.Get());
+            Assert.Equal(10, prop.Value);
+            var p = DynamicProperties.Instance.GetOrCreateProperty<int>("test");
+            Assert.Equal(10, p.Value);
             var prop2 = DynamicProperties.Instance.GetProperty<int>("test");
             Assert.NotNull(prop2);
-            Assert.Equal(prop.Get(), prop2.Get());
+            Assert.Equal(prop.Value, prop2.Value);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace Jellyfish.Configuration.Tests
             var prop2 = DynamicProperties.Factory.AsProperty(10, "test2");
             prop.Set(20);
             Assert.Equal(10 + 15 + 20, cx);
-            Assert.Equal(20, prop.Get());
+            Assert.Equal(20, prop.Value);
         }
 
         [Fact]
@@ -67,14 +67,14 @@ namespace Jellyfish.Configuration.Tests
         {
             DynamicProperties.Instance.Reset();
 
-            Assert.Equal(10, DynamicProperties.Factory.AsProperty(10, "test").Get());
-            Assert.Equal(2.0, DynamicProperties.Factory.AsProperty(2.0, "test2").Get());
-            Assert.Equal("xxx", DynamicProperties.Factory.AsProperty("xxx", "test3").Get());
-            Assert.Equal(true, DynamicProperties.Factory.AsProperty(true, "test4").Get());
+            Assert.Equal(10, DynamicProperties.Factory.AsProperty(10, "test").Value);
+            Assert.Equal(2.0, DynamicProperties.Factory.AsProperty(2.0, "test2").Value);
+            Assert.Equal("xxx", DynamicProperties.Factory.AsProperty("xxx", "test3").Value);
+            Assert.Equal(true, DynamicProperties.Factory.AsProperty(true, "test4").Value);
             var v = new CultureInfo("fr");
-            Assert.Equal(v, DynamicProperties.Factory.AsProperty(v, "test5").Get());
+            Assert.Equal(v, DynamicProperties.Factory.AsProperty(v, "test5").Value);
             var v2 = new int[] { 1, 2, 3 };
-            Assert.Equal(v2, DynamicProperties.Factory.AsProperty(v2, "test6").Get());
+            Assert.Equal(v2, DynamicProperties.Factory.AsProperty(v2, "test6").Value);
         }
     }
 }

@@ -10,7 +10,7 @@ using System;
 
 namespace Jellyfish.Configuration
 {
-    public class AspConfigurationSource : AbstractConfigurationSource
+    internal class AspConfigurationSource : AbstractConfigurationSource, IConfigurationSource
     {
         private IConfiguration _root;
 
@@ -19,13 +19,13 @@ namespace Jellyfish.Configuration
             this._root = root;
         }
 
-        public override Task<PollResult> LoadProperties(CancellationToken token)
+        public Task<PollResult> PollProperties(CancellationToken token)
         {
             if (!FirstTime) return EmptyResult;
             FirstTime = false;
 
             var result =
-                 new PollResult(new Dictionary<string, object>(_root.GetChildren().ToDictionary(v => v.Key.Replace(':', '.'), v => ConvertValue(v.Value))));
+                 new PollResult(new Dictionary<string, object>(_root.GetChildren().ToDictionary(v => v.Key.Replace(':', '.'), v => ConvertJsonValue(v.Value))));
 
             var t = Task.FromResult(result);
             return t;

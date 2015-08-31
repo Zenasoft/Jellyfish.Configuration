@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics.Contracts;
 using System.Threading;
+using System.Linq;
+using System.Reflection;
 
 namespace Jellyfish.Configuration
 {
@@ -54,7 +56,7 @@ namespace Jellyfish.Configuration
 
                         for (int i = 0; i < list.Count; i++)
                         {
-                            tasks[i] = list[i].LoadProperties(cancellationToken.Token);
+                            tasks[i] = list[i].PollProperties(cancellationToken.Token);
                         }
 
 
@@ -100,12 +102,20 @@ namespace Jellyfish.Configuration
                     {
                         var propertyType = kv.Value.GetType();
                         var dp = typeof(DynamicProperty<>).MakeGenericType(propertyType);
-                        var ctor = dp.GetConstructor(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+#if DNXCORE50
+                        var ctor = dp.GetTypeInfo().DeclaredConstructors.FirstOrDefault(c => {
+                            if (c.IsPublic) return false;
+                            return c.GetParameters().Length == 2 && c.GetParameters()[0].ParameterType == typeof(DynamicProperties) && c.GetParameters()[1].ParameterType == typeof(string);
+                        });
+#else
+                        var ctor = dp.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance,
                             null,
                             new Type[] { typeof(DynamicProperties), typeof(string) },
                             null);
-                        var p = (IDynamicPropertyBase)ctor.Invoke(new object[] { properties, kv.Key });
+#endif
+                        var p = (IDynamicProperty)ctor.Invoke(new object[] { properties, kv.Key });
                         return p;
+
                     });
 
                     prop.Set(kv.Value);

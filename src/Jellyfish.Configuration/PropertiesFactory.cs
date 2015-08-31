@@ -33,8 +33,14 @@ namespace Jellyfish.Configuration
             return p;
         }
 
-        public IDynamicProperty<T> AsChainedProperty<T>(T defaultValue = default(T), params string[] properties)
+        public IDynamicProperty<T> AsChainedProperty<T>(string name, T defaultValue = default(T), params string[] fallbackPropertyNames)
         {
+            Contract.Requires(!String.IsNullOrEmpty(name));
+            Contract.Requires(fallbackPropertyNames.Length > 0, "You must provide at least on efallback property name");
+
+            var properties = new string[fallbackPropertyNames.Length + 1];
+            properties[0] = name;
+            Array.Copy(fallbackPropertyNames, 0, properties, 1, fallbackPropertyNames.Length);
             var p = new ChainedDynamicProperty<T>(_properties, defaultValue, properties);
             return p;
         }
