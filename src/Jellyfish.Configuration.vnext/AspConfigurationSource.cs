@@ -12,11 +12,11 @@ namespace Jellyfish.Configuration
 {
     internal class AspConfigurationSource : AbstractConfigurationSource, IConfigurationSource
     {
-        private IConfiguration _root;
+        private IConfigurationSection[] _configurations;
 
-        public AspConfigurationSource(IConfiguration root)
+        public AspConfigurationSource(IConfigurationSection[] configurations)
         {
-            this._root = root;
+            this._configurations = configurations;
         }
 
         public Task<PollResult> PollProperties(CancellationToken token)
@@ -25,7 +25,7 @@ namespace Jellyfish.Configuration
             FirstTime = false;
 
             var result = new PollResult(
-                new Dictionary<string, object>(_root.GetChildren().ToDictionary(
+                new Dictionary<string, object>(_configurations.ToDictionary(
                     v => v.Key.Replace(':', '.'), 
                     v => ConvertJsonValue(v.Value)))
                     );

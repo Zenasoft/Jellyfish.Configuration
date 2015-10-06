@@ -1,4 +1,5 @@
 using Jellyfish.Configuration;
+using Microsoft.Framework.Configuration;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.Framework.DependencyInjection
@@ -13,7 +14,7 @@ namespace Microsoft.Framework.DependencyInjection
         }
     }
     
-    class DynamicPropertiesBuilder 
+    public class DynamicPropertiesBuilder 
     {
         private IDynamicProperties _instance;
         
@@ -28,13 +29,13 @@ namespace Microsoft.Framework.DependencyInjection
             return this;
         }
         
-        public DynamicPropertiesBuilder WithConfiguration(params IConfiguration[] configurations) {
+        public DynamicPropertiesBuilder WithConfiguration(params IConfigurationSection[] configurations) {
                         
             _instance.RegisterSource(new AspConfigurationSource(configurations));  
             return this;
         }
                 
-        public DynamicPropertiesBuilder WithSource(IConfigurationSource source) {
+        public DynamicPropertiesBuilder WithSource(Jellyfish.Configuration.IConfigurationSource source) {
                         
             _instance.RegisterSource(source);  
             return this;
