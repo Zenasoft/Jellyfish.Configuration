@@ -59,7 +59,6 @@ namespace Jellyfish.Configuration
                             tasks[i] = list[i].PollProperties(cancellationToken.Token);
                         }
 
-
                         if (!Task.WaitAll(tasks, sourceTimeoutInMs, cancellationToken.Token))
                         {
                             // log : one task is timeout

@@ -24,8 +24,11 @@ namespace Jellyfish.Configuration
             if (!FirstTime) return EmptyResult;
             FirstTime = false;
 
-            var result =
-                 new PollResult(new Dictionary<string, object>(_root.GetChildren().ToDictionary(v => v.Key.Replace(':', '.'), v => ConvertJsonValue(v.Value))));
+            var result = new PollResult(
+                new Dictionary<string, object>(_root.GetChildren().ToDictionary(
+                    v => v.Key.Replace(':', '.'), 
+                    v => ConvertJsonValue(v.Value)))
+                    );
 
             var t = Task.FromResult(result);
             return t;

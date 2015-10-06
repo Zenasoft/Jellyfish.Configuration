@@ -66,11 +66,10 @@ namespace Jellyfish.Configuration
         /// <summary>
         /// Initialise dynamic properties configuration. Can be call only once and before any call to DynamicProperties.Instance.
         /// </summary>
-        /// <param name="config">AspNet5 IConfiguration used to initialize values.</param>
         /// <param name="pollingIntervalInSeconds">Polling interval in seconds (default 60)</param>
         /// <param name="sourceTimeoutInMs">Max time allowed to a source to retrieve new values (Cancel the request but doesn't raise an error)</param>
         /// <returns>Current DynamicProperties instance</returns>
-        public static IDynamicProperties Init(Microsoft.Framework.Configuration.IConfiguration config=null, int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
+        public static IDynamicProperties Init(int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
             if (_instance == null)
             {
@@ -79,10 +78,6 @@ namespace Jellyfish.Configuration
                     if (_instance == null)
                     {
                         _instance = new DynamicProperties(pollingIntervalInSeconds, sourceTimeoutInMs);
-                        if (config != null)
-                        {
-                            Instance.RegisterSource(new AspConfigurationSource(config));
-                        }
                     }
                 }
                 return _instance;
