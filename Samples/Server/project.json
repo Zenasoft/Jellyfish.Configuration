@@ -1,0 +1,12 @@
+{
+	"dependencies": {
+		"Microsoft.AspNet.Mvc": "6.0.0-beta7",
+		"Microsoft.AspNet.Server.Kestrel": "1.0.0-beta7"
+	},
+	"frameworks": {
+		"dnx451": {}
+	},
+	"commands": {
+		"kestrel": "Microsoft.AspNet.Hosting --server Microsoft.AspNet.Server.Kestrel --server.urls=http://localhost:5000"
+	}
+}

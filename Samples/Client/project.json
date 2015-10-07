@@ -1,0 +1,12 @@
+{
+	"dependencies": {
+		"Jellyfish.Configuration.vnext": "1.0.0-*",
+		"Microsoft.AspNet.Mvc": "6.0.0-beta7",
+		"Microsoft.AspNet.Server.Kestrel": "1.0.0-beta7",
+        "Microsoft.Framework.Configuration.Abstractions": "1.0.0-beta7",
+        "Microsoft.Framework.Configuration.Json": "1.0.0-beta7"
+	},
+	"frameworks": {
+		"dnx451": {}
+	}
+}

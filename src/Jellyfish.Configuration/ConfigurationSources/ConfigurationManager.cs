@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using System.Threading;
-using System.Linq;
 using System.Reflection;
 using Microsoft.Framework.Internal;
 
@@ -93,9 +91,13 @@ namespace Jellyfish.Configuration
         {
             foreach (var kv in props.Values)
             {
-                if (kv.Value == null)
+                var val = kv.Value as string;
+                if( kv.Value == null || val == "$delete")
+                {
+                    this.properties.RemoveProperty(kv.Key);
                     continue;
-
+                }
+                
                 try {
                     var prop = this.properties.GetOrCreate(kv.Key, () =>
                     {
