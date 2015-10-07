@@ -18,7 +18,7 @@ namespace Jellyfish.Configuration
 
         private void Add<T>([NotNull]string name, [NotNull]IDynamicProperty<T> prop)
         {
-            _properties.Properties.Add(name, prop);
+            _properties.AddProperty(name, prop);
         }
 
         public IDynamicProperty<T> AsProperty<T>(T value, string name = null)

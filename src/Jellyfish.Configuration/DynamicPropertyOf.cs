@@ -57,7 +57,7 @@ namespace Jellyfish.Configuration
 
         void IDynamicProperty.Set(object value)
         {
-            this.Set((T)value);
+             this.Set((T)value);
         }
 
         #region IDisposable Support
@@ -71,6 +71,11 @@ namespace Jellyfish.Configuration
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        public override string ToString()
+        {
+            return value != null ? value.ToString() : String.Empty;
         }
         #endregion
     }

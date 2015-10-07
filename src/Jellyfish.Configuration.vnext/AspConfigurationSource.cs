@@ -23,7 +23,7 @@ namespace Jellyfish.Configuration
             if (!FirstTime) return EmptyResult;
             FirstTime = false;
 
-            var result = new PollResult(
+            var result = new PollResult(this,
                 new Dictionary<string, object>(_configurations.ToDictionary(
                     v => v.Key.Replace(':', '.'), 
                     v => ConvertJsonValue(v.Value)))

@@ -13,7 +13,7 @@ namespace Jellyfish.Configuration.Sources
     /// <summary>
     /// Static configuration source
     /// </summary>
-    public class StaticConfigurationSource : IConfigurationSource
+    public class StaticConfigurationSource : AbstractConfigurationSource, IConfigurationSource
     {
         private ConcurrentDictionary<string, object> _values = new ConcurrentDictionary<string, object>();
 
@@ -29,7 +29,7 @@ namespace Jellyfish.Configuration.Sources
 
         Task<PollResult> IConfigurationSource.PollProperties(CancellationToken token)
         {
-            var t = Task.FromResult( new PollResult( new Dictionary<string,object>( _values)));
+            var t = Task.FromResult( new PollResult( this, new Dictionary<string,object>( _values)));
             _values.Clear();
             return t;
         }

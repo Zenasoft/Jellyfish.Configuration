@@ -116,6 +116,11 @@ namespace Jellyfish.Configuration
         {
             Dispose(true);
         }
+
+        public override string ToString()
+        {
+            return Value != null ? Value.ToString() : String.Empty;
+        }
         #endregion
     }
 }

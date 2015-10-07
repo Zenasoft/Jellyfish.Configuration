@@ -3,9 +3,11 @@
 
 using Microsoft.Framework.Internal;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Jellyfish.Configuration
 {
@@ -39,8 +41,7 @@ namespace Jellyfish.Configuration
         internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
         // Manage sources and polling
         private ConfigurationManager _configurationManager;
-        private Dictionary<string, IDynamicProperty> _properties = new Dictionary<string, IDynamicProperty>(Comparer);
-        internal IDictionary<string, IDynamicProperty> Properties { get { return _properties; } }
+        private ConcurrentDictionary<string, IDynamicProperty> _properties = new ConcurrentDictionary<string, IDynamicProperty>(Comparer);
 
         /// <summary>
         /// Get the dynamic properties factory
@@ -86,6 +87,11 @@ namespace Jellyfish.Configuration
             throw new Exception("Can not initialize an active instance. Use Reset().");
         }
 
+        internal void AddProperty(string name, IDynamicProperty prop)
+        {
+            _properties.TryAdd(name, prop);
+        }
+
         /// <summary>
         /// Private constructor
         /// </summary>
@@ -108,7 +114,7 @@ namespace Jellyfish.Configuration
             var tmp = _properties;
             var tmp2 = _configurationManager;
 
-            Interlocked.Exchange(ref _properties, new Dictionary<string, IDynamicProperty>(Comparer));
+            Interlocked.Exchange(ref _properties, new ConcurrentDictionary<string, IDynamicProperty>(Comparer));
             Interlocked.Exchange(ref _configurationManager, new ConfigurationManager(this, pollingIntervalInSeconds, sourceTimeoutInMs));
 
             if (tmp != null)
@@ -147,10 +153,16 @@ namespace Jellyfish.Configuration
         /// </summary>
         /// <param name="source">A new configuration source</param>
         /// <returns></returns>
-        public IDynamicProperties RegisterSource([NotNull]IConfigurationSource source)
+        public ConfigurationSourceBuilder WithSources()
         {
-            _configurationManager.RegisterSource(source);
-            return this;
+            return new ConfigurationSourceBuilder(Instance._configurationManager);
+        }
+
+
+        // for tests only
+        internal void RegisterSource(IConfigurationSource source)
+        {
+            Instance._configurationManager.RegisterSources(new IConfigurationSource[] { source }).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -161,8 +173,12 @@ namespace Jellyfish.Configuration
         /// <returns>A dynamic property instance or null if not exists.</returns>
         public IDynamicProperty<T> GetProperty<T>([NotNull]string name)
         {
+            if (typeof(T) == typeof(Int32)) throw new Exception("Integer type must always be Int64 (or long).");
+
             IDynamicProperty p;
             _properties.TryGetValue(name, out p);
+
+            // TODO error?? if p is not of type T
             return p as IDynamicProperty<T>;
         }
 
@@ -175,6 +191,8 @@ namespace Jellyfish.Configuration
         /// <returns>A dynamic property instance</returns>
         public IDynamicProperty<T> CreateOrUpdateProperty<T>([NotNull]string name, T value)
         {
+            if (typeof(T) == typeof(Int32)) throw new Exception("Integer type must always be Int64 (or long).");
+
             IDynamicProperty p;
             if (!_properties.TryGetValue(name, out p))
             {
@@ -196,6 +214,8 @@ namespace Jellyfish.Configuration
         /// <returns>A dynamic property instance</returns>
         public IDynamicProperty<T> GetOrCreateProperty<T>([NotNull]string name, T defaultValue=default(T))
         {
+            if (typeof(T) == typeof(Int32)) throw new Exception("Integer type must always be Int64 (or long).");
+
             IDynamicProperty p;
             if (_properties.TryGetValue(name, out p))
                 return p as IDynamicProperty<T>;
@@ -204,30 +224,15 @@ namespace Jellyfish.Configuration
 
         IDynamicProperty IDynamicPropertiesUpdater.GetOrCreate([NotNull]string key, Func<IDynamicProperty> factory)
         {
-            IDynamicProperty prop;
-
-            Dictionary<string, IDynamicProperty> initial;
-            Dictionary<string, IDynamicProperty> tmp;
-            do
-            {
-                if (_properties.TryGetValue(key, out prop)) break;
-
-                initial = _properties;
-                tmp = new Dictionary<string, IDynamicProperty>(initial);
-                prop = factory();
-                tmp.Add(key, prop);
-            }
-            while(Interlocked.CompareExchange(ref _properties, tmp, initial) != initial);
-
+            IDynamicProperty prop = _properties.GetOrAdd(key, k => factory());
             return prop;
         }
 
         void IDynamicPropertiesUpdater.RemoveProperty([NotNull]string name)
         {
             IDynamicProperty p;
-            if (_properties.TryGetValue(name, out p))
+            if (_properties.TryRemove(name, out p))
             {
-                _properties.Remove(name);
                 OnPropertyChanged(p, PropertyChangedAction.Removed);                
             }
         }

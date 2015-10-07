@@ -11,55 +11,35 @@ namespace Microsoft.Framework.DependencyInjection
 {
     public static class JellyfishExtensions 
 	{    
-        public static Jellyfish.Configuration.DynamicPropertiesBuilder UseDynamicProperties(this IServiceCollection services)
+        public static ConfigurationSourceBuilder UseDynamicProperties(this IServiceCollection services)
         { 
             DynamicProperties.Init();
             services.AddSingleton<IDynamicProperties>(s=>DynamicProperties.Instance);
-            return new Jellyfish.Configuration.DynamicPropertiesBuilder(DynamicProperties.Instance);
+            return DynamicProperties.Instance.WithSources();
         }
     }
 }
 
 namespace Jellyfish.Configuration
 {
-    public class DynamicPropertiesBuilder 
+    public static class DynamicPropertiesBuilderExtensions 
     {
-        private IDynamicProperties _instance;
-        
-        internal DynamicPropertiesBuilder(IDynamicProperties properties) 
-        {
-            _instance = properties;    
+        public static ConfigurationSourceBuilder UseJellyfish(this ConfigurationSourceBuilder builder) {
+                        
+            builder.AddSource(new HttpConfigurationSource("http://localhost:30100"));  
+            return builder;
         }
+        
+        public static ConfigurationSourceBuilder WithConfiguration(this ConfigurationSourceBuilder builder, [NotNull]IEnumerable<IConfigurationSection> configurations) {
 
-        public DynamicPropertiesBuilder UseJellyfish() {
-                        
-            _instance.RegisterSource(new UrlConfigurationSource("http://localhost:30100"));  
-            return this;
-        }
-        
-        public DynamicPropertiesBuilder WithConfiguration([NotNull]IEnumerable<IConfigurationSection> configurations) {
-                        
-            _instance.RegisterSource(new AspConfigurationSource(configurations.ToArray()));  
-            return this;
+            builder.AddSource(new AspConfigurationSource(configurations.ToArray()));  
+            return builder;
         }
          
-        public DynamicPropertiesBuilder WithConfiguration([NotNull]IConfigurationRoot configuration) {
-                        
-            _instance.RegisterSource(new AspConfigurationSource(configuration.GetChildren().ToArray()));  
-            return this;
-        }
-                        
-        public DynamicPropertiesBuilder WithSource([NotNull]Jellyfish.Configuration.IConfigurationSource source) {
-                        
-            _instance.RegisterSource(source);  
-            return this;
-        }
-        
-        public DynamicPropertiesBuilder WithRestSource([NotNull]string uri) {
-                        
-            _instance.RegisterSource(new UrlConfigurationSource(uri));  
-            return this;
-        }
-    
+        public static ConfigurationSourceBuilder WithConfiguration(this ConfigurationSourceBuilder builder, [NotNull]IConfigurationRoot configuration) {
+
+            builder.AddSource(new AspConfigurationSource(configuration.GetChildren().ToArray()));  
+            return builder;
+        }                              
     }
 }

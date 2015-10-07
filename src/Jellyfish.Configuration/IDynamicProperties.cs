@@ -107,10 +107,9 @@ namespace Jellyfish.Configuration
         IDynamicProperty<T> GetOrCreateProperty<T>([NotNull]string name, T defaultValue);
 
         /// <summary>
-        /// Add a new configuration source for polling
+        /// Used to add source configuration
         /// </summary>
-        /// <param name="source">A new configuration source</param>
         /// <returns></returns>
-        IDynamicProperties RegisterSource([NotNull]IConfigurationSource source);
+        ConfigurationSourceBuilder WithSources();
     }
 }

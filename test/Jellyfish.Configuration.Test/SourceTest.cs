@@ -39,7 +39,7 @@ namespace Jellyfish.Configuration.Tests
             IDynamicProperties properties = new DynamicProperties(1);
 
             var source = new StaticConfigurationSource();
-            properties.RegisterSource(source);
+            ((DynamicProperties)properties).RegisterSource(source);
 
             var chained = properties.Factory.AsChainedProperty("test10", 30,  "test20");
             Assert.Equal(30, properties.Factory.AsChainedProperty("test10", 30,  "test20").Value);

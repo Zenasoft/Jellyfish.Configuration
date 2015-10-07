@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Jellyfish.Configuration
 {
-    public class UrlConfigurationSource : AbstractConfigurationSource, IConfigurationSource
+    public class HttpConfigurationSource : AbstractConfigurationSource, IConfigurationSource
     {
         private Uri uri;
         private long? lastUpdate;
         
-        public UrlConfigurationSource(string uri)
+        public HttpConfigurationSource(string uri)
         {
             this.uri = new Uri(uri);
         }
@@ -36,7 +36,7 @@ namespace Jellyfish.Configuration
     
                 lastUpdate = DateTime.UtcNow.Ticks;
     
-                return new PollResult(values);
+                return new PollResult(this, values);
             }
         }
     }

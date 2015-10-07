@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Reflection;
 using Microsoft.Framework.Internal;
+#if DNXCORE50
+using System.Linq;
+#endif
 
 namespace Jellyfish.Configuration
 {
     internal class ConfigurationManager : IDisposable
     {
-        private List<IConfigurationSource> sources = new List<IConfigurationSource>();
+        private List<IConfigurationSource> _sources = new List<IConfigurationSource>();
         private int sourceTimeoutInMs;
         private CancellationTokenSource cancellationToken;
         private IDynamicPropertiesUpdater properties;
@@ -42,7 +45,7 @@ namespace Jellyfish.Configuration
         {
             while (true)
             {
-                var list = sources;
+                var list = _sources;
                 var tasks = new Task<PollResult>[list.Count];
 
                 try
@@ -80,10 +83,16 @@ namespace Jellyfish.Configuration
 
         private void LoadPropertiesFromSources(Task<PollResult>[] tasks)
         {
-            for(int i=0;i<tasks.Length;i++)
+            for (int i = 0; i < tasks.Length; i++)
             {
-                var props = tasks[i].Result;
-                LoadProperties(props);
+                var result = tasks[i].Result;
+                LoadProperties(result);
+
+                if (result.Source?.OnInitialized != null)
+                {
+                    result.Source.OnInitialized();
+                    result.Source.OnInitialized = null;
+                }
             }
         }
 
@@ -121,35 +130,67 @@ namespace Jellyfish.Configuration
 
                     prop.Set(kv.Value);
                 }
-                catch(Exception) { }
+                catch(Exception) {
+                    // TODO log
+                }
             }
         }
 
-        public void RegisterSource([NotNull]IConfigurationSource source)
+        public Task RegisterSources(IEnumerable<IConfigurationSource> sources)
         {
-            if (sources.Contains(source))
-                throw new InvalidOperationException("Duplicate source");
-
             List<IConfigurationSource> initial;
             List<IConfigurationSource> tmp;
+            var latch = new Latch();
 
             do
             {
-                initial = sources;
+                initial = _sources;
                 tmp = new List<IConfigurationSource>(initial);
-                if (tmp.Contains(source))
-                    break;
-                tmp.Add(source);
+                foreach (var source in sources)
+                {
+                    if (tmp.Contains(source))
+                        break;
+                    source.OnInitialized = () => latch.Decrement();
+                    tmp.Add(source);
+                    latch.Increment();
+                }
             }
-            while (Interlocked.CompareExchange(ref sources, tmp, initial) != initial);
+            while (Interlocked.CompareExchange(ref _sources, tmp, initial) != initial);
 
             EnsuresPolling();
+
+            return latch.Task;
         }
 
         public void Dispose()
         {
             if (cancellationToken != null)
                 cancellationToken.Cancel();
+        }
+
+        // Thanks to jon skeet
+        class Latch
+        {
+            private int count = 0;
+            private readonly TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+
+            public void Increment()
+            {
+                Interlocked.Increment(ref count);
+            }
+
+            public void Decrement()
+            {
+                if (Interlocked.Decrement(ref count) == 0)
+                {
+                    tcs.TrySetResult(null);
+                }
+            }
+
+            public Task Task
+            {
+                get { return tcs.Task; }
+            }
         }
     }
 }
