@@ -14,21 +14,22 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void SourceDeclarationTest()
         {
-            var properties = new DynamicProperties(1);
+            DynamicProperties.Instance = null;
+            var properties = (DynamicProperties) DynamicProperties.Init(1);
 
             var source = new StaticConfigurationSource();
             properties.RegisterSource(source);
 
-            var prop = properties.GetProperty<int>("test");
+            var prop = properties.GetProperty("test");
             Assert.Null(prop);
 
             source.Set("test", 10);
-            prop = properties.GetProperty<int>("test");
+            prop = properties.GetProperty("test");
             Assert.Null(prop);
 
             Thread.Sleep(properties.PollingIntervalInSeconds*1100);
 
-            prop = properties.GetProperty<int>("test");
+            prop = properties.GetProperty("test");
             Assert.NotNull(prop);
             Assert.Equal(10, prop.Value);
         }
@@ -36,7 +37,8 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void ChainedSourceTest()
         {
-            IDynamicProperties properties = new DynamicProperties(1);
+            DynamicProperties.Instance = null;
+            var properties = DynamicProperties.Init(1);
 
             var source = new StaticConfigurationSource();
             ((DynamicProperties)properties).RegisterSource(source);
@@ -61,8 +63,9 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void MultiSourceTest()
         {
-            var properties = new DynamicProperties(1);
-            
+            DynamicProperties.Instance = null;
+            var properties = (DynamicProperties)DynamicProperties.Init(1);
+
             var source1 = new StaticConfigurationSource();
             properties.RegisterSource(source1);
 

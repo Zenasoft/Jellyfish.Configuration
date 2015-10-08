@@ -14,12 +14,12 @@ namespace Jellyfish.Configuration
     /// </summary>
     /// <typeparam name="T">Property type</typeparam>
     [System.Diagnostics.DebuggerDisplay("{Value}")]
-    public class ChainedDynamicProperty<T> : IDynamicProperty<T>
+    public class ChainedDynamicProperty : IDynamicProperty
     {
         private string[] _fallbackProperties;
-        private IDynamicProperty<T> _activeProperty;
+        private IDynamicProperty _activeProperty;
         private DynamicProperties _propertiesManager;
-        private T _defaultValue;
+        private object _defaultValue;
         private bool disposed = false;
 
         string IDynamicProperty.Name
@@ -30,12 +30,7 @@ namespace Jellyfish.Configuration
             }
         }
 
-        object IDynamicProperty.GetValue()
-        {
-            return Value;
-        }
-
-        internal ChainedDynamicProperty(DynamicProperties manager, T defaultValue = default(T), params string[] properties)
+        internal ChainedDynamicProperty(DynamicProperties manager, object defaultValue, params string[] properties)
         {
             if(properties.Length < 2) throw new ArgumentException("You must provided at least 2 properties.");
             _propertiesManager = manager;
@@ -48,10 +43,10 @@ namespace Jellyfish.Configuration
 
         protected void Reset()
         {
-            IDynamicProperty<T> tmp = null;
+            IDynamicProperty tmp = null;
             foreach(var propertyName in _fallbackProperties)
             {
-                tmp = _propertiesManager.GetProperty<T>(propertyName);
+                tmp = _propertiesManager.GetProperty(propertyName);
                 if(tmp != null)
                 {
                     break;
@@ -71,13 +66,17 @@ namespace Jellyfish.Configuration
         /// <summary>
         /// Current value
         /// </summary>
-        public T Value
+        public T ValueAs<T>()
+        {
+            if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
+            return (T)Value;
+        }
+
+        public object Value
         {
             get
             {
-                if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
-
-                return _activeProperty != null ? _activeProperty.Value : _defaultValue;
+                return (_activeProperty != null ? _activeProperty.Value : _defaultValue);
             }
         }
 
@@ -88,7 +87,7 @@ namespace Jellyfish.Configuration
         /// Only the main property has precedence so others are ignored
         /// </summary>
         /// <param name="value">Property value</param>
-        public void Set(T value)
+        public void Set(object value)
         {
             if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
 
@@ -98,11 +97,6 @@ namespace Jellyfish.Configuration
             var tmp = _fallbackProperties.Take(1).ToArray();
             Interlocked.Exchange(ref _fallbackProperties, tmp);
             Reset();
-        }
-
-        void IDynamicProperty.Set(object value)
-        {
-            this.Set((T)value);
         }
 
         #region IDisposable Support

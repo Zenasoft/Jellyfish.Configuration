@@ -12,9 +12,9 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void EmptyDynamicPropertyTest()
         {
-            DynamicProperties.Instance.Reset();
+            DynamicProperties.Instance = null;
 
-            Assert.Null(DynamicProperties.Instance.GetProperty<int>("test"));
+            Assert.Null(DynamicProperties.Instance.GetProperty("test"));
             var p = DynamicProperties.Instance.GetOrCreateProperty<int>("test");
             Assert.Equal(0, p.Value);
         }
@@ -22,14 +22,14 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void PropertyDeclarationTest()
         {
-            DynamicProperties.Instance.Reset();
+            DynamicProperties.Instance = null;
 
             var prop = DynamicProperties.Factory.AsProperty(10, "test");
             Assert.NotNull(prop);
             Assert.Equal(10, prop.Value);
             var p = DynamicProperties.Instance.GetOrCreateProperty<int>("test");
             Assert.Equal(10, p.Value);
-            var prop2 = DynamicProperties.Instance.GetProperty<int>("test");
+            var prop2 = DynamicProperties.Instance.GetProperty("test");
             Assert.NotNull(prop2);
             Assert.Equal(prop.Value, prop2.Value);
         }
@@ -37,7 +37,7 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void DuplicateTest()
         {
-            DynamicProperties.Instance.Reset();
+            DynamicProperties.Instance = null;
 
             var prop = DynamicProperties.Factory.AsProperty(10, "test");
             Assert.Throws<ArgumentException>(() =>
@@ -49,10 +49,10 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void PropertyChangedTest()
         {
-            DynamicProperties.Instance.Reset();
+            DynamicProperties.Instance = null;
 
             var cx = 0;
-            DynamicProperties.Instance.PropertyChanged += (s, e) => { if (e.Property.Name == "test") cx += (int)e.Property.GetValue(); };
+            DynamicProperties.Instance.PropertyChanged += (s, e) => { if (e.Property.Name == "test") cx += e.Property.ValueAs<int>(); };
 
             var prop = DynamicProperties.Factory.AsProperty(10, "test");
             prop.Set(15);
@@ -65,7 +65,7 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void MultiTypesTest()
         {
-            DynamicProperties.Instance.Reset();
+            DynamicProperties.Instance = null;
 
             Assert.Equal(10, DynamicProperties.Factory.AsProperty(10, "test").Value);
             Assert.Equal(2.0, DynamicProperties.Factory.AsProperty(2.0, "test2").Value);

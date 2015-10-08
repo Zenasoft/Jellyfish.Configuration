@@ -62,6 +62,11 @@ namespace Jellyfish.Configuration
                 if (_instance == null) { Init(); }
                 return _instance;
             }
+            // test only
+            internal set
+            {
+                _instance = value;
+            }
         }
 
         /// <summary>
@@ -97,7 +102,7 @@ namespace Jellyfish.Configuration
         /// </summary>
         /// <param name="pollingIntervalInSeconds"></param>
         /// <param name="sourceTimeoutInMs"></param>
-        internal DynamicProperties(int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
+        private DynamicProperties(int pollingIntervalInSeconds = 60, int sourceTimeoutInMs = 1000)
         {
             _factory = new PropertiesFactory(this);
             Reset(pollingIntervalInSeconds, sourceTimeoutInMs);
@@ -168,18 +173,13 @@ namespace Jellyfish.Configuration
         /// <summary>
         /// Get a property or null if not exists
         /// </summary>
-        /// <typeparam name="T">Property type</typeparam>
         /// <param name="name">Property name</param>
         /// <returns>A dynamic property instance or null if not exists.</returns>
-        public IDynamicProperty<T> GetProperty<T>([NotNull]string name)
+        public IDynamicProperty GetProperty([NotNull]string name)
         {
-            if (typeof(T) == typeof(Int32)) throw new Exception("Integer type must always be Int64 (or long).");
-
             IDynamicProperty p;
             _properties.TryGetValue(name, out p);
-
-            // TODO error?? if p is not of type T
-            return p as IDynamicProperty<T>;
+            return p;
         }
 
         /// <summary>
@@ -189,10 +189,8 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="value">Default value</param>
         /// <returns>A dynamic property instance</returns>
-        public IDynamicProperty<T> CreateOrUpdateProperty<T>([NotNull]string name, T value)
+        public IDynamicProperty CreateOrUpdateProperty<T>([NotNull]string name, T value)
         {
-            if (typeof(T) == typeof(Int32)) throw new Exception("Integer type must always be Int64 (or long).");
-
             IDynamicProperty p;
             if (!_properties.TryGetValue(name, out p))
             {
@@ -202,7 +200,7 @@ namespace Jellyfish.Configuration
             {
                 p.Set(value);
             }
-            return p as IDynamicProperty<T>;
+            return p;
         }
 
         /// <summary>
@@ -212,13 +210,11 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="defaultValue">Default value</param>
         /// <returns>A dynamic property instance</returns>
-        public IDynamicProperty<T> GetOrCreateProperty<T>([NotNull]string name, T defaultValue=default(T))
+        public IDynamicProperty GetOrCreateProperty<T>([NotNull]string name, T defaultValue=default(T))
         {
-            if (typeof(T) == typeof(Int32)) throw new Exception("Integer type must always be Int64 (or long).");
-
             IDynamicProperty p;
             if (_properties.TryGetValue(name, out p))
-                return p as IDynamicProperty<T>;
+                return p;
             return _factory.AsProperty(defaultValue, name);
         }
 

@@ -1,8 +1,8 @@
 ﻿{
   "dependencies": {
-    "xunit": "2.1.0-rc1-*",
+    "xunit": "2.1.0",
     "Jellyfish.Configuration": "",
-    "xunit.runner.dnx": "2.1.0-*"
+    "xunit.runner.dnx": "2.1.0-beta5a-build188"
   },
   "frameworks": {
     "dnx451": { },

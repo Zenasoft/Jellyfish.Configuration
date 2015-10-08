@@ -11,10 +11,10 @@ namespace Jellyfish.Configuration.Tests
         [Fact]
         public void ChainedDeclarationTest()
         {
-            DynamicProperties.Instance.Reset();
+            DynamicProperties.Instance = null;
 
             var chained = DynamicProperties.Factory.AsChainedProperty("test", 30,  "test1");
-            Assert.Equal(30, DynamicProperties.Factory.AsChainedProperty("test", 30,  "test1").Value);
+            Assert.Equal(30, DynamicProperties.Factory.AsChainedProperty("test", 30,  "test1").ValueAs<int>());
 
             var prop2 = DynamicProperties.Factory.AsProperty(20, "test1");
             Assert.Equal(20, chained.Value);
