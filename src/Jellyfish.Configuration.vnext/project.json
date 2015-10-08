@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-beta4",
+  "version": "1.0.0-beta4-10",
   "description": "Dynamic configuration framework useful for micro services architecture",
   "requireLicenseAcceptance": true,
   "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",

@@ -6,9 +6,9 @@ using System;
 namespace Jellyfish.Configuration
 {
     [System.Diagnostics.DebuggerDisplay("{value}")]
-    internal class DynamicProperty : IDynamicProperty
+    internal class DynamicProperty<T> : IDynamicProperty<T>
     {
-        private object value;
+        private T value;
         private DynamicProperties propertiesManager;
         private bool disposed = false;
 
@@ -26,10 +26,13 @@ namespace Jellyfish.Configuration
         /// <summary>
         /// Current value
         /// </summary>
-        public T ValueAs<T>()
+        public T Value
         {
-            if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
-            return (T)value;
+            get
+            {
+                if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
+                return (T)value;
+            }
         }
 
         /// <summary>
@@ -37,7 +40,7 @@ namespace Jellyfish.Configuration
         /// Doesn't update source values.
         /// </summary>
         /// <param name="value">Property value</param>
-        public void Set(object value)
+        public void Set(T value)
         {
             if (disposed) throw new ObjectDisposedException("Can not use a disposed property. Do you have call DynamicProperties.Reset() ?");
             if (!Object.Equals(this.value, value))
@@ -47,12 +50,14 @@ namespace Jellyfish.Configuration
             }
         }
 
-        public object Value
+        object IDynamicProperty.GetValue()
         {
-            get
-            {
-                return this.value;
-            }
+            return Value;
+        }
+
+        void IDynamicProperty.Set(object value)
+        {
+             this.Set((T)value);
         }
 
         #region IDisposable Support

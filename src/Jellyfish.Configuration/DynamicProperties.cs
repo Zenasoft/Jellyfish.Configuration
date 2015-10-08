@@ -62,10 +62,9 @@ namespace Jellyfish.Configuration
                 if (_instance == null) { Init(); }
                 return _instance;
             }
-            // test only
-            internal set
+            internal set // for test only
             {
-                _instance = value;
+                _instance = null;
             }
         }
 
@@ -173,13 +172,16 @@ namespace Jellyfish.Configuration
         /// <summary>
         /// Get a property or null if not exists
         /// </summary>
+        /// <typeparam name="T">Property type</typeparam>
         /// <param name="name">Property name</param>
         /// <returns>A dynamic property instance or null if not exists.</returns>
-        public IDynamicProperty GetProperty([NotNull]string name)
+        public IDynamicProperty<T> GetProperty<T>([NotNull]string name)
         {
             IDynamicProperty p;
             _properties.TryGetValue(name, out p);
-            return p;
+
+            // TODO error?? if p is not of type T
+            return p as IDynamicProperty<T>;
         }
 
         /// <summary>
@@ -189,7 +191,7 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="value">Default value</param>
         /// <returns>A dynamic property instance</returns>
-        public IDynamicProperty CreateOrUpdateProperty<T>([NotNull]string name, T value)
+        public IDynamicProperty<T> CreateOrUpdateProperty<T>([NotNull]string name, T value)
         {
             IDynamicProperty p;
             if (!_properties.TryGetValue(name, out p))
@@ -200,7 +202,7 @@ namespace Jellyfish.Configuration
             {
                 p.Set(value);
             }
-            return p;
+            return p as IDynamicProperty<T>;
         }
 
         /// <summary>
@@ -210,11 +212,11 @@ namespace Jellyfish.Configuration
         /// <param name="name">Property name</param>
         /// <param name="defaultValue">Default value</param>
         /// <returns>A dynamic property instance</returns>
-        public IDynamicProperty GetOrCreateProperty<T>([NotNull]string name, T defaultValue=default(T))
+        public IDynamicProperty<T> GetOrCreateProperty<T>([NotNull]string name, T defaultValue=default(T))
         {
             IDynamicProperty p;
             if (_properties.TryGetValue(name, out p))
-                return p;
+                return p as IDynamicProperty<T>;
             return _factory.AsProperty(defaultValue, name);
         }
 

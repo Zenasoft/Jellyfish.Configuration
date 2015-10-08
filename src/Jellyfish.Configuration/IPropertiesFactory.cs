@@ -17,7 +17,7 @@ namespace Jellyfish.Configuration
         /// <param name="value">Default value</param>
         /// <param name="name">Property name</param>
         /// <returns>A dynamic property instance</returns>
-        IDynamicProperty AsProperty<T>(T value, string name=null);
+        IDynamicProperty<T> AsProperty<T>(T value, string name=null);
         /// <summary>
         /// Create a new chained dynamic property
         /// </summary>
@@ -26,6 +26,6 @@ namespace Jellyfish.Configuration
         /// <param name="defaultValue">Default value</param>
         /// <param name="fallbackPropertyNames">List of properties to chain. The first is the main property</param>
         /// <returns>A dynamic property instance</returns>
-        IDynamicProperty AsChainedProperty<T>([NotNull]string propertyName, T defaultValue = default(T), params string[] fallbackPropertyNames);
+        IDynamicProperty<T> AsChainedProperty<T>([NotNull]string propertyName, T defaultValue = default(T), params string[] fallbackPropertyNames);
     }
 }

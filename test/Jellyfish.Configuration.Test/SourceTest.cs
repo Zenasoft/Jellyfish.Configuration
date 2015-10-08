@@ -15,21 +15,21 @@ namespace Jellyfish.Configuration.Tests
         public void SourceDeclarationTest()
         {
             DynamicProperties.Instance = null;
-            var properties = (DynamicProperties) DynamicProperties.Init(1);
+            var properties = (DynamicProperties)DynamicProperties.Init(1);
 
             var source = new StaticConfigurationSource();
             properties.RegisterSource(source);
 
-            var prop = properties.GetProperty("test");
+            var prop = properties.GetProperty<int>("test");
             Assert.Null(prop);
 
             source.Set("test", 10);
-            prop = properties.GetProperty("test");
+            prop = properties.GetProperty<int>("test");
             Assert.Null(prop);
 
             Thread.Sleep(properties.PollingIntervalInSeconds*1100);
 
-            prop = properties.GetProperty("test");
+            prop = properties.GetProperty<int>("test");
             Assert.NotNull(prop);
             Assert.Equal(10, prop.Value);
         }

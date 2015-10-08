@@ -17,7 +17,7 @@ namespace Jellyfish.Configuration.Sample
                 .Initialize();
 
             var prop1 = DynamicProperties.Instance.GetOrCreateProperty<bool>("sample.prop1");
-            var prop2 = DynamicProperties.Instance.GetOrCreateProperty<long>("sample.prop2");
+            var prop2 = DynamicProperties.Instance.GetOrCreateProperty<int>("sample.prop2");
             var prop3 = DynamicProperties.Instance.GetOrCreateProperty<string>("sample.prop3");
             var prop4 = DynamicProperties.Factory.AsProperty(50L);
 

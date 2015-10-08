@@ -5,8 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Reflection;
 using Microsoft.Framework.Internal;
-
+#if DNXCORE50
+using System.Linq;
+#endif
 
 namespace Jellyfish.Configuration
 {
@@ -107,8 +110,22 @@ namespace Jellyfish.Configuration
                 try {
                     var prop = this.properties.GetOrCreate(kv.Key, () =>
                     {
-                        var p =new DynamicProperty((DynamicProperties)properties, kv.Key);
+                        var propertyType = kv.Value.GetType();
+                        var dp = typeof(DynamicProperty<>).MakeGenericType(propertyType);
+#if DNXCORE50
+                        var ctor = dp.GetTypeInfo().DeclaredConstructors.FirstOrDefault(c => {
+                            if (c.IsPublic) return false;
+                            return c.GetParameters().Length == 2 && c.GetParameters()[0].ParameterType == typeof(DynamicProperties) && c.GetParameters()[1].ParameterType == typeof(string);
+                        });
+#else
+                        var ctor = dp.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance,
+                            null,
+                            new Type[] { typeof(DynamicProperties), typeof(string) },
+                            null);
+#endif
+                        var p = (IDynamicProperty)ctor.Invoke(new object[] { properties, kv.Key });
                         return p;
+
                     });
 
                     prop.Set(kv.Value);

@@ -17,6 +17,13 @@ namespace Jellyfish.Configuration
     public class DynamicPropertyChangedEventArgs : EventArgs
     {
         /// <summary>
+        /// Current typed property
+        /// </summary>
+        /// <typeparam name="T">Property type</typeparam>
+        /// <returns></returns>
+        public IDynamicProperty<T> GetPropertyAs<T>() { return (IDynamicProperty<T>)Property; }
+
+        /// <summary>
         /// Current property
         /// </summary>
         public IDynamicProperty Property { get; private set; }
