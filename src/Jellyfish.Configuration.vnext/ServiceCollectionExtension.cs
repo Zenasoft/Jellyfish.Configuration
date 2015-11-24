@@ -3,9 +3,10 @@
 
 using System.Collections.Generic;
 using Jellyfish.Configuration;
-using Microsoft.Framework.Configuration;
+using Microsoft.Extensions.Configuration;
 using System.Linq;
 using Microsoft.Framework.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Framework.DependencyInjection
 {

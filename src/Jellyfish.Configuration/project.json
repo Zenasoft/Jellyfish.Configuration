@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-beta5-10",
+  "version": "1.0.0-beta10",
   "description": "Dynamic configuration framework useful for micro services architecture",
   "requireLicenseAcceptance": true,
   "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
@@ -10,7 +10,10 @@
   "dependencies": {
     "Newtonsoft.Json": "7.0.1",
     "System.Net.Http": "4.0.0",
-    "Microsoft.Framework.NotNullAttribute.Sources": "1.0.0-beta8-*"
+    "Microsoft.Framework.NotNullAttribute.Sources": {
+      "version": "1.0.0-*",
+      "type": "build"
+    }
   },
   "repository": {
     "type": "git",
@@ -20,8 +23,8 @@
     "dnx451": { },
     "dnxcore50": {
       "dependencies": {
-        "System.Reflection.TypeExtensions": "4.0.1-beta-*",
-        "System.Linq": "4.0.1-beta-*"
+        "System.Reflection.TypeExtensions": "4.0.1-*",
+        "System.Linq": "4.0.1-*"
       }
     }
   }
